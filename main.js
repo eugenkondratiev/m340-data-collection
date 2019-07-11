@@ -1,5 +1,5 @@
 var TcpPort = require("modbus-serial").TcpPort;
-var tcpPort = new TcpPort("192.168.1.42");
+var tcpPort = new TcpPort("192.168.1.225");
 var ModbusRTU = require("modbus-serial");
 var client = new ModbusRTU(tcpPort);
 
@@ -11,8 +11,8 @@ bits.addBinFunctions();
 // var ModbusRTU = require("modbus-serial");
 // var client = new ModbusRTU();
 // // open connection to a tcp line
-//client.connectTCP("95.158.47.15", { port: 30502 });
-client.connectTCP("192.168.1.100", { port: 502 });
+client.connectTCP("95.158.47.15", { port: 30502 });
+//client.connectTCP("192.168.1.100", { port: 502 });
 //client.connectTCP("192.168.1.225", { port: 502 });
  
 //client.connectTCP(tcpPort, { port: 502 });

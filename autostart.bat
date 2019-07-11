@@ -1,3 +1,3 @@
-d:
-cd D:\JS\modbus
-pm2 start app.js --watch
+e:
+cd E:\js\demon
+pm2 start app.js --name m340-demon --watch --watch-delay 10 
