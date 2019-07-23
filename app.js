@@ -12,6 +12,7 @@ const m340 = require('./m340read');
 const bits = require('./bit-operations');
 bits.addBinFunctions();
 let handler = 0;
+const logIt = require("./logger");
 
 const addresses = [0, 10, 18, 19, 21, 43, 44, 45, 46, 47, 52, 54, 55];
 const parameters = ["eco1LastDayW28", "T_10", "P_22", "P_21", "P_34", "T_41", "T_42", "P_36", "W_38", "Q_39", "EI_86", "P_19", "EI_82"];
@@ -38,9 +39,10 @@ handler = setInterval(function() {
     
 const WebSocketClient = require('websocket').client;
 
-const demon = new WebSocketClient({closeTimeout : 30000});
+const demon = new WebSocketClient({closeTimeout : 120000});
 demon.on('connectFailed', function(error) {
-    console.log('Connect Error: ' + error.toString());
+    logIt('Connect Error: ' + error.toString());
+    //console.log('Connect Error: ' + error.toString());
    // recallingFlag = permanentRecall();
    process.exit();
 });
@@ -49,28 +51,34 @@ demon.on('connectFailed', function(error) {
 
 demon.on('connect', function(connection) {
  //   console.log('WebSocket Client Connected');
+    logIt("demon.connect('ws://95.158.47.15:8081');");
      connection.on('error', function(error) {
-        console.log("Connection Error: " + error.toString());
+        logIt("Connection Error: " + error.toString());
+        // console.log("Connection Error: " + error.toString());
      });
     connection.on('close', function() {
-        console.log('echo-protocol Connection Closed', connection.state);
+        logIt('echo-protocol Connection Closed', connection.state);
+//        console.log('echo-protocol Connection Closed', connection.state);
         process.exit();
     });
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
             // TODO: receive necessery parameters list
-            console.log("Received: '" + message.utf8Data + "'");
+            logIt("Received: '" + message.utf8Data + "'");
+            // console.log("Received: '" + message.utf8Data + "'");
         }
     });
     
     function sendNumber() {
         if (connection.connected) {
-            console.log("connection.connected", connection.connected);
+           //console.log("connection.connected", connection.connected);
+           //logIt("connection.connected", connection.connected);
             
            const dataarr = m340data.map( el => Number.isFinite(el) ? el.toFixed(2) : " - ");
            const dt = new Date();
            let outgoingMessage =JSON.stringify({eco1 : dataarr, timestamp: dt}).toString();
-           console.log("outgoingMessage", outgoingMessage)
+        //    console.log("outgoingMessage", outgoingMessage)
+            // logIt("outgoingMessage", outgoingMessage)
             connection.sendUTF(outgoingMessage);
             let handler = setTimeout(sendNumber, 2000);
         }
@@ -78,5 +86,30 @@ demon.on('connect', function(connection) {
     dataHandler = sendNumber();
 });
 
-demon.connect('ws://95.158.47.15:8081');
+
+ const isPortReahable = require('./is-port-reachable');
+
+ function reCall() {
+     
+    isPortReahable(8081, {host: '95.158.47.15', timeout: 5000})
+    .then(isTrue => {
+        if (isTrue) {
+           // logIt("demon.connect('ws://95.158.47.15:8081');");
+           demon.connect('ws://95.158.47.15:8081');
+        } else {
+           logIt("Can not connect. Another try;");
+            setTimeout(reCall, 15000);
+        }
+    })
+    .catch(err => {
+        console.log("error :" , err);
+        
+    });
+   
+ }
+
+
+ reCall();
+
+//logIt("demon.connect('ws://95.158.47.15:8081');");
 
