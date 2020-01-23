@@ -3,6 +3,7 @@ const TcpPort = require("modbus-serial").TcpPort;
 const tcpPort = new TcpPort("192.168.1.225");
 const ModbusRTU = require("modbus-serial");
 const client = new ModbusRTU(tcpPort);
+const LAST_DAY = true;
 
 const BLOCK_START = 12150;
 const BLOCK_SIZE = 120;
@@ -13,12 +14,15 @@ const bits = require('./bit-operations');
 bits.addBinFunctions();
 
 const logIt = require("./logger");
+const readHourFromPlc = require('./controller/read-hour-from_plc');
+const getLastDayHourString = require('./get-last-day').getLastDayHourString;
+const getLastDay = require('./get-last-day').getLastDayString;
 
-const addresses = [0, 10, 18, 19, 21, 43, 44, 45, 46, 47, 52, 54, 55, 17, 34, 35, 39, 51, 31,7];
+const addresses = [0, 10, 18, 19, 21, 43, 44, 45, 46, 47, 52, 54, 55, 17, 34, 35, 39, 51, 31, 7];
 const parameters = ["eco1LastDayW28", "T_10", "P_22", "P_21", "P_34", "T_41", "T_42", "P_36",
     "W_38", "Q_39", "EI_86", "P_19", "EI_82", "P_23", "meo_92", "meo_93", "meo_97", "EI_83", "EI_74", "T_7"];
 //temporary in 2 arrays
-
+const getLastDayEco1 = require('./controller/update-last-day-test');
 
 let m340data = [];
 client.connectTCP("192.168.1.100", { port: 502 });
@@ -63,10 +67,32 @@ demon.on('connect', function (connection) {
         //        console.log('echo-protocol Connection Closed', connection.state);
         process.exit();
     });
-    connection.on('message', function (message) {
+    connection.on('message', async function (message) {
+        logIt("Received msg type: '" + message.type + "'");
+
         if (message.type === 'utf8') {
             // TODO: receive necessery parameters list
             logIt("Received: '" + message.utf8Data + "'");
+            const msg = JSON.parse(message.utf8Data);
+            if (msg.lastDayUpdate) {
+                // const dayDataEco1 = await getLastDayEco1();
+
+                const answer = [];
+                for (let i = 0; i < 24; i++) {
+                    const resp = await readHourFromPlc(client, i, LAST_DAY);
+                    resp.unshift(getLastDayHourString(i));
+                    console.log("resp " + i + " ", resp);
+                    answer.push(resp)
+                }
+                logIt("Handled day data Eco1 Day: '" + JSON.stringify(answer) + "\n'");
+
+                // logIt("Handled day data: '" + JSON.stringify(dayDataEco1) + "'");
+
+                let outgoingMessage = JSON.stringify({ lastDayEco1: answer, timestamp: new Date() }).toString();
+                // let outgoingMessage = JSON.stringify({ lastDayEco1: dayDataEco1, timestamp: new Date() }).toString();
+                console.log("outgoingMessage   ", outgoingMessage);
+                connection.sendUTF(outgoingMessage);
+            }
             // console.log("Received: '" + message.utf8Data + "'");
         }
     });
