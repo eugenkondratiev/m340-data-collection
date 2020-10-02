@@ -57,7 +57,7 @@ demon.on('connectFailed', function (error) {
 
 demon.on('connect', function (connection) {
     //   console.log('WebSocket Client Connected');
-    logIt("demon.connect('ws://95.158.47.15:8081');");
+    logIt("demon.connect('ws://95.158.44.52:8081');");
     connection.on('error', function (error) {
         logIt("Connection Error: " + error.toString());
         // console.log("Connection Error: " + error.toString());
@@ -119,11 +119,11 @@ const isPortReahable = require('./is-port-reachable');
 
 function reCall() {
 
-    isPortReahable(8081, { host: '95.158.47.15', timeout: 5000 })
+    isPortReahable(8081, { host: '95.158.44.52', timeout: 5000 })
         .then(isTrue => {
             if (isTrue) {
-                // logIt("demon.connect('ws://95.158.47.15:8081');");
-                demon.connect('ws://95.158.47.15:8081');
+                // logIt("demon.connect('ws://95.158.44.52:8081');");
+                demon.connect('ws://95.158.44.52:8081');
             } else {
                 logIt("Can not connect. Another try;");
                 setTimeout(reCall, 15000);
@@ -139,5 +139,5 @@ function reCall() {
 
 reCall();
 
-//logIt("demon.connect('ws://95.158.47.15:8081');");
+//logIt("demon.connect('ws://95.158.44.52:8081');");
 

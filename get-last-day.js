@@ -1,10 +1,10 @@
 
 function getLastDayString() {
-    const lastDay = (new Date(new Date() - 24 * 3600000));
-    return lastDay.toLocaleString("ru-UA",{year:"numeric",month:"2-digit", day: "2-digit"}).slice(0, 10);
+    const _dt = (new Date(new Date() - 24 * 3600000)).toLocaleDateString("ru-UA",{year:"numeric",month:"2-digit", day: "2-digit"});
+    return `${_dt.slice(6)}-${_dt.slice(3,5)}-${_dt.slice(0,2)}`
 }
 function getCurrentDayString() {
-    return (new Date()).toLocaleString().slice(0, 10);
+    return (new Date()).toLocaleString().slice(0, 10).replace(/\./g,'-');
 }
 
 function getHourString(_lastDay) {
