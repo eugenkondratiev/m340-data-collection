@@ -15,8 +15,13 @@ bits.addBinFunctions();
 
 const logIt = require("./logger");
 const readHourFromPlc = require('./controller/read-hour-from_plc');
-const getLastDayHourString = require('./get-last-day').getLastDayHourString;
-const getLastDay = require('./get-last-day').getLastDayString;
+
+const updateEco1Remote = require('./model/update-eco-records');
+
+// const getLastDayHourString = require('./get-last-date-strings').getLastDayHourString;
+// const getLastDay = require('./get-last-date-strings').getLastDayString;
+
+const { getLastDayString, getLastDayHourString, getMonthAgoFirstHourString, getCurrentDayFirstHourString } = require('./get-last-date-strings');
 
 const addresses = [0, 10, 18, 19, 21, 43, 44, 45, 46, 47, 52, 54, 55, 17, 34, 35, 39, 51, 31, 7];
 const parameters = ["eco1LastDayW28", "T_10", "P_22", "P_21", "P_34", "T_41", "T_42", "P_36",
@@ -92,6 +97,33 @@ demon.on('connect', function (connection) {
                 // let outgoingMessage = JSON.stringify({ lastDayEco1: dayDataEco1, timestamp: new Date() }).toString();
                 console.log("outgoingMessage   ", outgoingMessage);
                 connection.sendUTF(outgoingMessage);
+            }
+            if (msg.lastMonthUpdate) {
+                ;
+                const answer = {};
+                //TODO
+                //form lastMOnth sql query
+                try {
+                    const resp = await require('./model/get-last-31-days-records')().catch(e => { answer.error = e.message; console.error(e) });
+
+                    console.log("lastMonthUpdate   response-  ", resp);
+                    answer.data = resp.data;
+
+                    const resp2 = await updateEco1Remote(answer.data);
+
+                    console.log("update response  -  ", resp2);
+
+                    console.log("lastMonthUpdate  -  ", answer);
+
+                } catch (err) {
+                    answer.error = err.message
+                } finally {
+                    let outgoingMessage = JSON.stringify({ lastMonthEco1: answer, timestamp: new Date() }).toString();
+                    // let outgoingMessage = JSON.stringify({ lastDayEco1: dayDataEco1, timestamp: new Date() }).toString();
+                    console.log("lastMonthUpdate  outgoingMessage   ", outgoingMessage);
+                    connection.sendUTF(outgoingMessage);
+                }
+
             }
             // console.log("Received: '" + message.utf8Data + "'");
         }
