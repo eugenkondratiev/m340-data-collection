@@ -11,7 +11,7 @@
   "dependencies": {
     "modbus-serial": "^7.6.0",
     "mysql2": "^1.7.0",
-    "socket.io": "^2.2.0",
+    "socket.io": "^2.5.0",
     "websocket": "^1.0.33"
   },
   "devDependencies": {
